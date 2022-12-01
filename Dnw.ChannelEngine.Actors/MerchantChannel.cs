@@ -77,6 +77,7 @@ public class MerchantChannel : Actor, IMerchantChannel, IRemindable
             MerchantName = _state?.MerchantName,
             MerchantChannelName = _state?.MerchantChannelName,
             CompletedAt = DateTime.UtcNow,
+            RunningOn = Environment.MachineName,
             ActorId = Id.GetId()
         };
         using var client = new DaprClientBuilder().Build();

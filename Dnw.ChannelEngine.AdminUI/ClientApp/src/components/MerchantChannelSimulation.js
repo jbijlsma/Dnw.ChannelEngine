@@ -1,19 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-class MerchantChannelStatus {
-    constructor(merchantId, merchantName, channelName, lastStarted, lastCompleted, status, runningOn) {
-        this.id = `${merchantId}:${channelName}`;
-        this.merchantId = merchantId;
-        this.merchantName = merchantName;
-        this.channelName = channelName;
-        this.lastStarted = lastStarted ? new Date(lastStarted).toLocaleString() : null;
-        this.lastCompleted = lastCompleted ? new Date(lastCompleted).toLocaleString() : null;
-        this.status = status;
-        this.runningOn = runningOn;
-    }
-}
-
-export const FetchData = () => {
+export const MerchantChannelSimulation = () => {
   const [ merchantChannels, setMerchantChannels ] = useState([]);
   
   useEffect(() => {
@@ -22,13 +9,12 @@ export const FetchData = () => {
         const json = JSON.parse(msg.data);
         console.log(json);
         
-        const status = json.startedAt ? 'running' : '-';
+        const status = json.startedAt ? 'running' : '------';
         let newChannelStatus = new MerchantChannelStatus(json.merchantId, json.merchantName, json.merchantChannelName, json.startedAt, json.completedAt, status, json.runningOn);
 
         setMerchantChannels(prevState => {
             const newState = [ ...prevState ];
             
-            //const foundIndex = newState.findIndex(prevChannelStatus => prevChannelStatus.id === newChannelStatus.id);
             const { found, index } = findMerchantStatusById(newChannelStatus.id, newState);
             if (found) {
                 const updatedChannelStatus = { ...newState[index] };
@@ -59,10 +45,6 @@ export const FetchData = () => {
     await fetch('merchant/simulation/stop');
   }
 
-  const clearState = async () => {
-    await fetch('merchant/simulation/clear');
-  }
-
   const findMerchantStatusById = (searchId, items) => {
     'use strict';
 
@@ -72,7 +54,7 @@ export const FetchData = () => {
     let currentElement;
 
     while (minIndex <= maxIndex) {
-        currentIndex = (minIndex + maxIndex) / 2 | 0; // Binary hack. Faster than Math.floor
+        currentIndex = Math.floor(minIndex + maxIndex);
         currentElement = items[currentIndex];
 
         if (currentElement.id < searchId) {
@@ -82,14 +64,14 @@ export const FetchData = () => {
             maxIndex = currentIndex - 1;
         }
         else {
-            return { // Modification
+            return {
                 found: true,
                 index: currentIndex
             };
         }
     }
 
-    return { // Modification
+    return {
         found: false,
         index: !currentElement || currentElement.id >= searchId ? currentIndex : currentIndex + 1 
     };
@@ -99,11 +81,11 @@ export const FetchData = () => {
     <div>
       <h1 id="tabelLabel" >Merchant Channel Refresh Status</h1>
       <p>This component shows how to use DAPR actors, pubsub and Server Side Events (SSE)</p>
-      <button onClick={start}>Start Simulation</button>
-      &nbsp;
-      <button onClick={stop}>Stop Simulation</button>
-      &nbsp;
-      <button onClick={clearState}>Clear State</button>
+      <div>
+        <button onClick={start}>Start Simulation</button>
+        &nbsp;
+        <button onClick={stop}>Stop Simulation</button>
+      </div>
       <table className='table table-striped' aria-labelledby="tabelLabel">
         <thead>
         <tr>
@@ -130,4 +112,17 @@ export const FetchData = () => {
       </table>
     </div>
   );
+}
+
+class MerchantChannelStatus {
+    constructor(merchantId, merchantName, channelName, lastStarted, lastCompleted, status, runningOn) {
+        this.id = `${merchantId}:${channelName}`;
+        this.merchantId = merchantId;
+        this.merchantName = merchantName;
+        this.channelName = channelName;
+        this.lastStarted = lastStarted ? new Date(lastStarted).toLocaleString() : null;
+        this.lastCompleted = lastCompleted ? new Date(lastCompleted).toLocaleString() : null;
+        this.status = status;
+        this.runningOn = runningOn;
+    }
 }

@@ -1,19 +1,14 @@
 import { Counter } from "./components/Counter";
-import { FetchData } from "./components/FetchData";
-import { Home } from "./components/Home";
+import { MerchantChannelSimulation } from "./components/MerchantChannelSimulation";
 
 const AppRoutes = [
   {
     index: true,
-    element: <Home />
+    element: <MerchantChannelSimulation />
   },
   {
     path: '/counter',
     element: <Counter />
-  },
-  {
-    path: '/fetch-data',
-    element: <FetchData />
   }
 ];
 
