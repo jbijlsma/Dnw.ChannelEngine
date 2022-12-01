@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <PackageId>Dnw.ChannelEngine.Actors.Host</PackageId>
+    <Version>0.0.1</Version>
+    <Authors>Jeroen</Authors>
+    <Company>Bijlsma</Company>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Dapr.Actors.AspNetCore" Version="1.9.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Dnw.ChannelEngine.Actors\Dnw.ChannelEngine.Actors.csproj" />
+    <ProjectReference Include="..\Dnw.ChannelEngine.Messages\Dnw.ChannelEngine.Messages.csproj" />
+    <ProjectReference Include="..\Dnw.ChannelEngine.Models\Dnw.ChannelEngine.Models.csproj" />
+  </ItemGroup>
+
+</Project>

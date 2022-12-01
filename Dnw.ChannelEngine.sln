@@ -3,11 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dnw.ChannelEngine.Api", "Dnw.ChannelEngine.Api\Dnw.ChannelEngine.Api.csproj", "{B181208E-5B46-4B94-AAEB-F9269C9D5C83}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dnw.ChannelEngine.AdminUI", "Dnw.ChannelEngine.AdminUI\Dnw.ChannelEngine.AdminUI.csproj", "{FFC73AE8-F14B-4C6D-86DE-C69B3B3F0A36}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dnw.ChannelEngine.Actors", "Dnw.ChannelEngine.Actors\Dnw.ChannelEngine.Actors.csproj", "{1F9DD0C6-19E2-40F7-837E-B7C922872FD0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dnw.ChannelEngine.Actors.Host", "Dnw.ChannelEngine.Actors.Host\Dnw.ChannelEngine.Actors.Host.csproj", "{1F9DD0C6-19E2-40F7-837E-B7C922872FD0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{9C7F2325-DAAB-4F1F-B686-3A90D307FA53}"
 EndProject
@@ -16,6 +14,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dnw.ChannelEngine.Models", "Dnw.ChannelEngine.Models\Dnw.ChannelEngine.Models.csproj", "{40EAEC46-CAC6-42FF-B470-6D7D0E81BDBC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dnw.ChannelEngine.Messages", "Dnw.ChannelEngine.Messages\Dnw.ChannelEngine.Messages.csproj", "{30E4BF83-DE74-42C5-AEA1-A351616CE7EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dnw.ChannelEngine.MerchantManager", "Dnw.ChannelEngine.MerchantManager\Dnw.ChannelEngine.MerchantManager.csproj", "{0D945289-5047-47EA-AA3D-E62BFB3D37D1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dnw.ChannelEngine.Actors", "Dnw.ChannelEngine.Actors\Dnw.ChannelEngine.Actors.csproj", "{0C089735-5B4E-4998-907E-CF9BD9ADAB18}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,10 +28,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B181208E-5B46-4B94-AAEB-F9269C9D5C83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B181208E-5B46-4B94-AAEB-F9269C9D5C83}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B181208E-5B46-4B94-AAEB-F9269C9D5C83}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B181208E-5B46-4B94-AAEB-F9269C9D5C83}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FFC73AE8-F14B-4C6D-86DE-C69B3B3F0A36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FFC73AE8-F14B-4C6D-86DE-C69B3B3F0A36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FFC73AE8-F14B-4C6D-86DE-C69B3B3F0A36}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -46,12 +44,21 @@ Global
 		{30E4BF83-DE74-42C5-AEA1-A351616CE7EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{30E4BF83-DE74-42C5-AEA1-A351616CE7EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30E4BF83-DE74-42C5-AEA1-A351616CE7EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D945289-5047-47EA-AA3D-E62BFB3D37D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D945289-5047-47EA-AA3D-E62BFB3D37D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D945289-5047-47EA-AA3D-E62BFB3D37D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D945289-5047-47EA-AA3D-E62BFB3D37D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C089735-5B4E-4998-907E-CF9BD9ADAB18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C089735-5B4E-4998-907E-CF9BD9ADAB18}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C089735-5B4E-4998-907E-CF9BD9ADAB18}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C089735-5B4E-4998-907E-CF9BD9ADAB18}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1F9DD0C6-19E2-40F7-837E-B7C922872FD0} = {9C7F2325-DAAB-4F1F-B686-3A90D307FA53}
 		{FFC73AE8-F14B-4C6D-86DE-C69B3B3F0A36} = {AC68D907-595E-4504-A3AF-BCF9CDF8DB67}
-		{B181208E-5B46-4B94-AAEB-F9269C9D5C83} = {AC68D907-595E-4504-A3AF-BCF9CDF8DB67}
 		{40EAEC46-CAC6-42FF-B470-6D7D0E81BDBC} = {9C7F2325-DAAB-4F1F-B686-3A90D307FA53}
 		{30E4BF83-DE74-42C5-AEA1-A351616CE7EB} = {9C7F2325-DAAB-4F1F-B686-3A90D307FA53}
+		{0D945289-5047-47EA-AA3D-E62BFB3D37D1} = {9C7F2325-DAAB-4F1F-B686-3A90D307FA53}
+		{0C089735-5B4E-4998-907E-CF9BD9ADAB18} = {9C7F2325-DAAB-4F1F-B686-3A90D307FA53}
 	EndGlobalSection
 EndGlobal

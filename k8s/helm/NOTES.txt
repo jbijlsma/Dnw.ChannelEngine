@@ -1,0 +1,7 @@
+helm template '.' --output-dir '.yamls'
+
+helm upgrade ce . --dry-run --debug --install
+
+helm upgrade ce . --install
+
+helm delete ce

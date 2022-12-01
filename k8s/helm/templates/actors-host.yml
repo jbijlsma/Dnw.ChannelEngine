@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: actors-host
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: actors-host
+  template:
+    metadata:
+      labels:
+        app: actors-host
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "actors"
+        dapr.io/app-port: "5050"
+    spec:
+      containers:
+        - name: actors-host
+          image: {{ .Values.PrivateContainerRegistry }}{{ .Release.Name }}-actors-host:latest
+          ports:
+            - containerPort: 5050

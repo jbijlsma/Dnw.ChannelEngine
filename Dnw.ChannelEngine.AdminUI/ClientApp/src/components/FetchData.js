@@ -1,59 +1,133 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 
-export class FetchData extends Component {
-  static displayName = FetchData.name;
+class MerchantChannelStatus {
+    constructor(merchantId, merchantName, channelName, lastStarted, lastCompleted, status, runningOn) {
+        this.id = `${merchantId}:${channelName}`;
+        this.merchantId = merchantId;
+        this.merchantName = merchantName;
+        this.channelName = channelName;
+        this.lastStarted = lastStarted ? new Date(lastStarted).toLocaleString() : null;
+        this.lastCompleted = lastCompleted ? new Date(lastCompleted).toLocaleString() : null;
+        this.status = status;
+        this.runningOn = runningOn;
+    }
+}
 
-  constructor(props) {
-    super(props);
-    this.state = { forecasts: [], loading: true };
+export const FetchData = () => {
+  const [ merchantChannels, setMerchantChannels ] = useState([]);
+  
+  useEffect(() => {
+    const eventSource = new EventSource('updates');
+    eventSource.onmessage = (msg) => {
+        const json = JSON.parse(msg.data);
+        console.log(json);
+        
+        const status = json.startedAt ? 'running' : '-';
+        let newChannelStatus = new MerchantChannelStatus(json.merchantId, json.merchantName, json.merchantChannelName, json.startedAt, json.completedAt, status, json.runningOn);
+
+        setMerchantChannels(prevState => {
+            const newState = [ ...prevState ];
+            
+            //const foundIndex = newState.findIndex(prevChannelStatus => prevChannelStatus.id === newChannelStatus.id);
+            const { found, index } = findMerchantStatusById(newChannelStatus.id, newState);
+            if (found) {
+                const updatedChannelStatus = { ...newState[index] };
+                
+                if (newChannelStatus.lastStarted) {
+                    updatedChannelStatus.lastStarted = newChannelStatus.lastStarted;
+                } else if (newChannelStatus.lastCompleted) {
+                    updatedChannelStatus.lastCompleted = newChannelStatus.lastCompleted;
+                }
+
+                updatedChannelStatus.status = status;
+                
+                newState.splice(index, 1, updatedChannelStatus);
+            } else {
+                newState.splice(index, 0, newChannelStatus);
+            }
+
+            return newState;
+        });
+    };
+  }, []);
+
+  const start = async () => {
+    await fetch('merchant/simulation/start');
   }
 
-  componentDidMount() {
-    this.populateWeatherData();
+  const stop = async () => {
+    await fetch('merchant/simulation/stop');
   }
 
-  static renderForecastsTable(forecasts) {
-    return (
+  const clearState = async () => {
+    await fetch('merchant/simulation/clear');
+  }
+
+  const findMerchantStatusById = (searchId, items) => {
+    'use strict';
+
+    let minIndex = 0;
+    let maxIndex = items.length - 1;
+    let currentIndex = 0;
+    let currentElement;
+
+    while (minIndex <= maxIndex) {
+        currentIndex = (minIndex + maxIndex) / 2 | 0; // Binary hack. Faster than Math.floor
+        currentElement = items[currentIndex];
+
+        if (currentElement.id < searchId) {
+            minIndex = currentIndex + 1;
+        }
+        else if (currentElement.id > searchId) {
+            maxIndex = currentIndex - 1;
+        }
+        else {
+            return { // Modification
+                found: true,
+                index: currentIndex
+            };
+        }
+    }
+
+    return { // Modification
+        found: false,
+        index: !currentElement || currentElement.id >= searchId ? currentIndex : currentIndex + 1 
+    };
+  }
+  
+  return (
+    <div>
+      <h1 id="tabelLabel" >Merchant Channel Refresh Status</h1>
+      <p>This component shows how to use DAPR actors, pubsub and Server Side Events (SSE)</p>
+      <button onClick={start}>Start Simulation</button>
+      &nbsp;
+      <button onClick={stop}>Stop Simulation</button>
+      &nbsp;
+      <button onClick={clearState}>Clear State</button>
       <table className='table table-striped' aria-labelledby="tabelLabel">
         <thead>
-          <tr>
-            <th>Date</th>
-            <th>Temp. (C)</th>
-            <th>Temp. (F)</th>
-            <th>Summary</th>
-          </tr>
+        <tr>
+          <th>Merchant</th>
+          <th>Channel</th>
+          <th>Last Started</th>
+          <th>Last Completed</th>
+          <th>Running On</th>
+          <th>Status</th>
+        </tr>
         </thead>
         <tbody>
-          {forecasts.map(forecast =>
-            <tr key={forecast.date}>
-              <td>{forecast.date}</td>
-              <td>{forecast.temperatureC}</td>
-              <td>{forecast.temperatureF}</td>
-              <td>{forecast.summary}</td>
+        {merchantChannels.map(channel =>
+            <tr key={channel.id}>
+              <td>{channel.merchantName}</td>
+              <td>{channel.channelName}</td>
+              <td>{channel.lastStarted}</td>
+              <td>{channel.lastCompleted}</td>
+              <td>{channel.runningOn}</td>
+              <th>{channel.status}</th>
             </tr>
-          )}
+        )}
         </tbody>
       </table>
-    );
-  }
-
-  render() {
-    let contents = this.state.loading
-      ? <p><em>Loading...</em></p>
-      : FetchData.renderForecastsTable(this.state.forecasts);
-
-    return (
-      <div>
-        <h1 id="tabelLabel" >Weather forecast</h1>
-        <p>This component demonstrates fetching data from the server.</p>
-        {contents}
-      </div>
-    );
-  }
-
-  async populateWeatherData() {
-    const response = await fetch('weatherforecast');
-    const data = await response.json();
-    this.setState({ forecasts: data, loading: false });
-  }
+    </div>
+  );
 }

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: merchant-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: merchant-manager
+  template:
+    metadata:
+      labels:
+        app: merchant-manager
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "merchant-manager"
+        dapr.io/app-port: "5050"
+    spec:
+      containers:
+        - name: merchant-manager
+          image: {{ .Values.PrivateContainerRegistry }}{{ .Release.Name }}-merchant-manager:latest
+          ports:
+            - containerPort: 5050
