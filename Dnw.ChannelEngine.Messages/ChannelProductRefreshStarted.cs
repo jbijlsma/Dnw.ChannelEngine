@@ -1,14 +1,10 @@
 using System;
+using JetBrains.Annotations;
 
 namespace Dnw.ChannelEngine.Messages
 {
-    public class ChannelProductRefreshStarted
+    public class ChannelProductRefreshStarted : MerchantChannelMessage
     {
-        public string MerchantId { get; set; }
-        public string MerchantName { get; set; }
-        public string MerchantChannelName { get; set; }
-        public DateTime StartedAt { get; set; }
-        public string RunningOn { get; set; }
-        public string ActorId { get; set; }
+        public DateTime StartedAt { [UsedImplicitly] get; set; }
     }
 }

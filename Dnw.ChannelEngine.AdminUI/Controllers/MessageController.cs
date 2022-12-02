@@ -32,6 +32,22 @@ public class MessageController : ControllerBase
         return Results.Ok();
     }
     
+    [HttpPost($"/{nameof(ChannelProductRefreshScheduled)}")]
+    [Topic(PubSubChannels.Default, nameof(ChannelProductRefreshScheduled))] 
+    public IResult Post(ChannelProductRefreshScheduled msg)
+    {
+        SendSse(msg);
+        return Results.Ok();
+    }
+    
+    [HttpPost($"/{nameof(ChannelProductRefreshStopped)}")]
+    [Topic(PubSubChannels.Default, nameof(ChannelProductRefreshStopped))] 
+    public IResult Post(ChannelProductRefreshStopped msg)
+    {
+        SendSse(msg);
+        return Results.Ok();
+    }
+    
     private void SendSse(object msg)
     {
         var json = JsonSerializer.Serialize(msg, new JsonSerializerOptions

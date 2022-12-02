@@ -2,7 +2,6 @@ using System.Text.Json;
 using Dapr.Actors;
 using Dapr.Actors.Client;
 using Dnw.ChannelEngine.Actors;
-using Dnw.ChannelEngine.MerchantManager.Clients;
 using Dnw.ChannelEngine.MerchantManager.Services;
 using Dnw.ChannelEngine.Messages;
 using Dnw.ChannelEngine.Models;
@@ -16,12 +15,10 @@ namespace Dnw.ChannelEngine.MerchantManager.Controllers;
 [Route("[controller]")]
 public class MerchantController : ControllerBase
 {
-    private readonly DaprActorClient _daprActorClient;
     private readonly IMerchantStore _merchantStore;
     
-    public MerchantController(DaprActorClient daprActorClient, IMerchantStore merchantStore)
+    public MerchantController(IMerchantStore merchantStore)
     {
-        _daprActorClient = daprActorClient;
         _merchantStore = merchantStore;
     }
     
@@ -50,21 +47,16 @@ public class MerchantController : ControllerBase
         return Ok();
     }
     
+    // Awaiting the tasks will cause timeouts with actors that perform long
+    // running tasks
     [HttpGet("simulation/stop")]
-    public async Task<IActionResult> StopSimulation()
+    public IActionResult StopSimulation()
     {
         if (_merchantStore.IsEmpty()) return Ok();
         
         var merchants = _merchantStore.GetAll();
-        var stopMerchantTasks = merchants.Select(merchant => 
+        merchants.ToList().ForEach(merchant => 
             ActorProxy.Create<IMerchant>(new ActorId(merchant.Id), nameof(Actors.Merchant)).Stop());
-
-        await Task.WhenAll(stopMerchantTasks);
-        
-        var deleteMerchantTasks = merchants.Select(merchant => 
-            _daprActorClient.Delete(nameof(Actors.Merchant), merchant.Id));
-        
-        await Task.WhenAll(deleteMerchantTasks);
 
         _merchantStore.Clear();
 
@@ -89,12 +81,19 @@ public class MerchantController : ControllerBase
         var selectedChannelIds = new HashSet<string>();
         var randomChannels = Enumerable.Range(0, n).Select(_ => GetRandomChannel(selection, selectedChannelIds)).ToArray();
 
-        return randomChannels.Select((channel, i) => new MerchantChannel
+        return randomChannels.Select((channel, i) =>
         {
-            Id = $"{merchantId}:{i}",
-            Name = $"MerchantChannel_{i}",
-            RefreshIntervalInSeconds = Random.Shared.Next(options.MinRefreshInternalInSeconds, options.MaxRefreshInternalInSeconds),
-            Channel = channel
+            var refreshIntervalInSeconds = Random.Shared.Next(options.MinRefreshInternalInSeconds, options.MaxRefreshInternalInSeconds + 1);
+            var refreshTimeInSeconds = Random.Shared.Next(options.MinRefreshTimeInSeconds, options.MaxRefreshTimeInSeconds + 1);
+            
+            return new MerchantChannel
+            {
+                Id = $"{merchantId}:{i}",
+                Name = $"MerchantChannel_{i}",
+                RefreshIntervalInSeconds = refreshIntervalInSeconds,
+                RefreshTimeInSeconds = refreshTimeInSeconds,
+                Channel = channel
+            };
         }).ToArray();
     }
 

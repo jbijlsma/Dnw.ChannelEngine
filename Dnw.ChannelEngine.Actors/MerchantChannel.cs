@@ -15,9 +15,8 @@ public interface IMerchantChannel : IActor
 [UsedImplicitly]
 public class MerchantChannel : Actor, IMerchantChannel, IRemindable
 {
-    private const int RefreshTimeInSeconds = 10;
     private const string ReminderName = "ReminderName";
-    
+
     private const string StateKey = "state";
     private State? _state;
     
@@ -29,15 +28,18 @@ public class MerchantChannel : Actor, IMerchantChannel, IRemindable
 
     public async Task Init(string merchantName, Models.MerchantChannel channel)
     {
-        _state = new State(merchantName, channel.Name, channel.RefreshIntervalInSeconds);
+        _state = new State(merchantName, channel.Name, channel.RefreshIntervalInSeconds, channel.RefreshTimeInSeconds);
         await StateManager.AddOrUpdateStateAsync(StateKey, _state, (_, _) => _state);
 
         await RegisterReminder();
+        
+        await PublishMessage<ChannelProductRefreshScheduled>();
     }
 
     public async Task Stop()
     {
         await UnregisterReminder();
+        await PublishMessage<ChannelProductRefreshStopped>();
     }
 
     protected override async Task OnActivateAsync()
@@ -47,41 +49,33 @@ public class MerchantChannel : Actor, IMerchantChannel, IRemindable
 
     public async Task ReceiveReminderAsync(string reminderName, byte[] state, TimeSpan dueTime, TimeSpan period)
     {
-        await PublishRefreshStartedMessage();
+        await PublishMessage<ChannelProductRefreshStarted>(msg =>
+            msg.StartedAt = DateTime.UtcNow);
 
-        await Task.Delay(1000 * RefreshTimeInSeconds);
+        await Task.Delay(1000 * _state!.RefreshTimeInSeconds);
         
-        await PublishRefreshFinishedMessage();
+        await PublishMessage<ChannelProductRefreshFinished>(
+            msg => msg.CompletedAt = DateTime.UtcNow);
     }
 
-    private async Task PublishRefreshStartedMessage()
+    private async Task PublishMessage<T>(Action<T>? updateMessage = null) where T : MerchantChannelMessage, new()
     {
-        var message = new ChannelProductRefreshStarted
+        var messageType = typeof(T).Name;
+        
+        var msg = new T
         {
+            MessageType = messageType,
             MerchantId = MerchantId,
             MerchantName = _state?.MerchantName,
             MerchantChannelName = _state?.MerchantChannelName,
-            StartedAt = DateTime.UtcNow,
             RunningOn = Environment.MachineName,
             ActorId = Id.GetId()
         };
+
+        updateMessage?.Invoke(msg);
+
         using var client = new DaprClientBuilder().Build();
-        await client.PublishEventAsync(PubSubChannels.Default, nameof(ChannelProductRefreshStarted), message);
-    }
-    
-    private async Task PublishRefreshFinishedMessage()
-    {
-        var message = new ChannelProductRefreshFinished
-        {
-            MerchantId = MerchantId,
-            MerchantName = _state?.MerchantName,
-            MerchantChannelName = _state?.MerchantChannelName,
-            CompletedAt = DateTime.UtcNow,
-            RunningOn = Environment.MachineName,
-            ActorId = Id.GetId()
-        };
-        using var client = new DaprClientBuilder().Build();
-        await client.PublishEventAsync(PubSubChannels.Default, nameof(ChannelProductRefreshFinished), message);
+        await client.PublishEventAsync(PubSubChannels.Default, messageType, msg);
     }
     
     private async Task UnregisterReminder()
@@ -94,9 +88,9 @@ public class MerchantChannel : Actor, IMerchantChannel, IRemindable
         await RegisterReminderAsync(
             ReminderName, 
             Array.Empty<byte>(), 
-            TimeSpan.FromSeconds(Random.Shared.Next(0, RefreshTimeInSeconds)),
+            TimeSpan.FromSeconds(Random.Shared.Next(0, _state!.RefreshIntervalInSeconds)),
             TimeSpan.FromSeconds(_state!.RefreshIntervalInSeconds));
     }
 
-    private record State(string MerchantName, string MerchantChannelName, int RefreshIntervalInSeconds);
+    private record State(string MerchantName, string MerchantChannelName, int RefreshIntervalInSeconds, int RefreshTimeInSeconds);
 }

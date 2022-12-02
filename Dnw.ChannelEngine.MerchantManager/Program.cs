@@ -1,16 +1,9 @@
-using Dnw.ChannelEngine.MerchantManager.Clients;
 using Dnw.ChannelEngine.MerchantManager.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddSingleton<IMerchantStore, MerchantStore>();
-builder.Services.AddHttpClient<DaprActorClient>(config =>
-{
-    // todo: get from config
-    const int daprPort = 5050;
-    config.BaseAddress = new Uri($"http://localhost:{daprPort}");
-});
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -1,48 +1,102 @@
 import React, { useState, useEffect } from 'react';
 
+import { toast } from 'react-toastify';
+
 export const MerchantChannelSimulation = () => {
+  const toastId = React.useRef(null);  
+    
   const [ merchantChannels, setMerchantChannels ] = useState([]);
+  const [ startBtnDisabled, setStartBtnDisabled ] = useState(false);
+  const [ stopBtnDisabled, setStopBtnDisabled ] = useState(false);
   
   useEffect(() => {
     const eventSource = new EventSource('updates');
-    eventSource.onmessage = (msg) => {
-        const json = JSON.parse(msg.data);
-        console.log(json);
-        
-        const status = json.startedAt ? 'running' : '------';
-        let newChannelStatus = new MerchantChannelStatus(json.merchantId, json.merchantName, json.merchantChannelName, json.startedAt, json.completedAt, status, json.runningOn);
-
-        setMerchantChannels(prevState => {
-            const newState = [ ...prevState ];
-            
-            const { found, index } = findMerchantStatusById(newChannelStatus.id, newState);
-            if (found) {
-                const updatedChannelStatus = { ...newState[index] };
-                
-                if (newChannelStatus.lastStarted) {
-                    updatedChannelStatus.lastStarted = newChannelStatus.lastStarted;
-                } else if (newChannelStatus.lastCompleted) {
-                    updatedChannelStatus.lastCompleted = newChannelStatus.lastCompleted;
-                }
-
-                updatedChannelStatus.status = status;
-                
-                newState.splice(index, 1, updatedChannelStatus);
-            } else {
-                newState.splice(index, 0, newChannelStatus);
-            }
-
-            return newState;
-        });
-    };
+    eventSource.onmessage = handleMessage;
   }, []);
+  
+  const handleMessage = (msg) => {
+    const data = JSON.parse(msg.data);
+    console.log(data);
+
+    if (data.messageType === 'ChannelProductRefreshStopped') {
+      handleChannelProductRefreshStoppedMessage(data);
+    } else {
+      handleOtherMessage(data);  
+    } 
+  }
+  
+  const handleChannelProductRefreshStoppedMessage = (msg) => {
+    setMerchantChannels(prevState => {
+      const { found, index } = findMerchantStatusById(`${msg.merchantId}:${msg.merchantChannelName}`, prevState);
+      if (found) {
+        const newState = [...prevState];
+        const updatedChannelStatus = { ...newState[index], status: 'Stopped' };
+        newState.splice(index, 1, updatedChannelStatus);
+
+        if (newState.every(m => m.status === 'Stopped')) {
+          showSuccessToast('Simulation stopped successfully!');
+        }
+        
+        return newState;
+      }
+      
+      return prevState;
+    });
+  }
+  
+  const handleOtherMessage = (msg) => {
+    const status = msg.startedAt ? 'running' : '------';
+    let newChannelStatus = new MerchantChannelStatus(msg.merchantId, msg.merchantName, msg.merchantChannelName, msg.startedAt, msg.completedAt, status, msg.runningOn);
+    
+    setMerchantChannels(prevState => {
+      const newState = [ ...prevState ];
+    
+      const { found, index } = findMerchantStatusById(newChannelStatus.id, newState);
+      if (found) {
+        const updatedChannelStatus = { ...newState[index] };
+    
+        if (newChannelStatus.lastStarted) {
+          updatedChannelStatus.lastStarted = newChannelStatus.lastStarted;
+        } else if (newChannelStatus.lastCompleted) {
+          updatedChannelStatus.lastCompleted = newChannelStatus.lastCompleted;
+        }
+    
+        updatedChannelStatus.status = status;
+    
+        newState.splice(index, 1, updatedChannelStatus);
+      } else {
+        newState.splice(index, 0, newChannelStatus);
+      }
+    
+      return newState;
+    });
+  };
 
   const start = async () => {
-    await fetch('merchant/simulation/start');
+    try {
+      setStartBtnDisabled(true);
+      setMerchantChannels([]);
+      await fetch('merchant/simulation/start');
+      showSuccessToast("Simulation started!");
+    }
+    catch (err) {
+      showErrorToast(err);    
+    } finally {
+      setStartBtnDisabled(false);
+    }
   }
 
   const stop = async () => {
-    await fetch('merchant/simulation/stop');
+    try {
+      setStopBtnDisabled(true);
+      await fetch('merchant/simulation/stop');
+      showInfoToast("Simulation stopping. Wait until all merchant channels have the 'Stopped' status  ...");
+    }
+    catch (err) {
+      showErrorToast(err);
+    } finally {
+      setStopBtnDisabled(false);
+    }
   }
 
   const findMerchantStatusById = (searchId, items) => {
@@ -76,15 +130,39 @@ export const MerchantChannelSimulation = () => {
         index: !currentElement || currentElement.id >= searchId ? currentIndex : currentIndex + 1 
     };
   }
+
+  const showSuccessToast = (msg) => {
+    showToast(toast.TYPE.SUCCESS, msg);
+  }
+
+  const showInfoToast = (msg) => {
+    showToast(toast.TYPE.INFO, msg);
+  }
+
+  const showErrorToast = (msg) => {
+    showToast(toast.TYPE.ERROR, msg);
+  }
+
+  const showToast = (type, msg) => {
+    if (!toast.isActive(toastId.current)) {
+      toastId.current = toast(msg, { toastId: 'merchantSimulationToast', type: type });  
+    }
+    else {
+      toast.update(toastId.current, {
+        render: msg,
+        type: type
+      });
+    }
+  }
   
   return (
     <div>
       <h1 id="tabelLabel" >Merchant Channel Refresh Status</h1>
       <p>This component shows how to use DAPR actors, pubsub and Server Side Events (SSE)</p>
       <div>
-        <button onClick={start}>Start Simulation</button>
+        <button disabled={startBtnDisabled} onClick={start}>Start Simulation</button>
         &nbsp;
-        <button onClick={stop}>Stop Simulation</button>
+        <button disabled={stopBtnDisabled} onClick={stop}>Stop Simulation</button>
       </div>
       <table className='table table-striped' aria-labelledby="tabelLabel">
         <thead>
