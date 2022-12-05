@@ -3,6 +3,10 @@
 # Define variables
 RELEASE_NAME=ce
 
+# Create the new cluster with a private container / image registry
+echo "Create new KinD cluster"
+#. ./create_kind_cluster.sh
+
 # Preload 3rd party images
 docker pull mcr.microsoft.com/dotnet/sdk:6.0-alpine
 kind load docker-image mcr.microsoft.com/dotnet/sdk:6.0-alpine
@@ -18,16 +22,19 @@ TAG="localhost:5001/$RELEASE_NAME-admin-ui:latest"
 echo "TAG=$TAG"
 docker build -t $TAG -f ../Dnw.ChannelEngine.AdminUI/Dockerfile ../.
 docker push $TAG
+kind load docker-image $TAG
 
 TAG="localhost:5001/$RELEASE_NAME-actors-host:latest"
 echo "TAG=$TAG"
 docker build -t $TAG -f ../Dnw.ChannelEngine.Actors.Host/Dockerfile ../.
 docker push $TAG
+kind load docker-image $TAG
 
 TAG="localhost:5001/$RELEASE_NAME-merchant-manager:latest"
 echo "TAG=$TAG"
 docker build -t $TAG -f ../Dnw.ChannelEngine.MerchantManager/Dockerfile ../.
 docker push $TAG
+kind load docker-image $TAG
 
 # Install app into k8s cluster
 helm upgrade "$RELEASE_NAME" ./helm \
