@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
 export const MerchantChannelSimulation = () => {
-  const toastId = React.useRef(null);  
-    
+  const toastId = React.useRef(null);
+  const collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
+  
   const [ merchantChannels, setMerchantChannels ] = useState([]);
   const [ startBtnDisabled, setStartBtnDisabled ] = useState(false);
   const [ stopBtnDisabled, setStopBtnDisabled ] = useState(false);
@@ -101,21 +102,24 @@ export const MerchantChannelSimulation = () => {
 
   const findMerchantStatusById = (searchId, items) => {
     'use strict';
-
+    
     let minIndex = 0;
     let maxIndex = items.length - 1;
     let currentIndex = 0;
     let currentElement;
+    let compare = 0;
 
     while (minIndex <= maxIndex) {
-        currentIndex = Math.floor(minIndex + maxIndex);
+        currentIndex = Math.floor((minIndex + maxIndex) / 2);
         currentElement = items[currentIndex];
 
-        if (currentElement.id < searchId) {
-            minIndex = currentIndex + 1;
-        }
-        else if (currentElement.id > searchId) {
+        compare = collator.compare(searchId, currentElement.id);
+        console.log(`current index: ${currentIndex}, compare: ${compare}`);
+        if (compare < 0) {
             maxIndex = currentIndex - 1;
+        }
+        else if (compare > 0) {
+            minIndex = currentIndex + 1;
         }
         else {
             return {
@@ -124,10 +128,10 @@ export const MerchantChannelSimulation = () => {
             };
         }
     }
-
+    
     return {
         found: false,
-        index: !currentElement || currentElement.id >= searchId ? currentIndex : currentIndex + 1 
+        index: !currentElement || compare < 0 ? currentIndex : currentIndex + 1 
     };
   }
 
