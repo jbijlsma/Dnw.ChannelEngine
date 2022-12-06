@@ -1,10 +1,12 @@
+![](demo.gif)
+
 # Introduction
 
 Proof of Concept (PoC) using the DAPR service-invocation, pubsub & actors components to build an application. The PoC also shows how to use Server Side Events (SSE) to show near real-time updates.
 
 In this case the PoC is an application based on a job interview at ChannelEngine. ChannelEngine allows merchants to offer their products on multiple marketplaces (channels) and needs a mechanism to periodically push product updates to all marketplaces.
 
-Actors are a natural way to model long running processes such as pushing product updates. Each merchant channel is implemented as an actor that uses reminders to schedule new product update cycles. In this example no real product updates are performed; the actor simply waits for a random number of seconds. The actor notifies interested parties using a pubsub channel (redis is configured here). In this case both the Dnw.ChannelEngine.AdminUI & Dnw.ChannelEngine.MerchantManager components are interested in the pubsub messages sent by the actors. The Dnw.ChannelEngine.AdminUI component uses Server Side Events to send the updates to the React SPA, whereas the Dnw.ChannelEngine.MerchantManager detects messages from merchant channels that should no longer be running and tries to stop them.
+Actors are a natural way to model long running processes such as pushing product updates. Each merchant channel is implemented as an actor that uses reminders to schedule new product update cycles. In this example no real product updates are performed; the actor simply waits for a random number of seconds. The actor notifies interested parties using a pubsub channel (redis is configured here). Both the Dnw.ChannelEngine.AdminUI & Dnw.ChannelEngine.MerchantManager components are interested in the pubsub messages sent by the actors. The Dnw.ChannelEngine.AdminUI component uses Server Side Events to send the updates to the React SPA, whereas the Dnw.ChannelEngine.MerchantManager detects messages from merchant channels that should no longer be running and tries to stop them.
 
 # Running locally
 
