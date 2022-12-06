@@ -10,6 +10,8 @@ Actors are a natural way to model long running processes (such as running produc
 
 Each merchant channel is implemented as an actor that uses actor reminders to schedule new product update cycles. In this example no real product updates are performed; the merchant channel actor simply waits for a random number of seconds. The actor notifies interested parties using a pubsub channel (redis is configured here). Both the Dnw.ChannelEngine.AdminUI & Dnw.ChannelEngine.MerchantManager components listen for pubsub messages. The Dnw.ChannelEngine.AdminUI component uses Server Side Events (SSE) to send the updates to the React UI, whereas the Dnw.ChannelEngine.MerchantManager detects messages from merchant channel actors that should no longer be running and asks them to stop.       
 
+Scaling the individual components is easy. Just update the k8s manifests in the ./k8s folder. The Dnw.ChannelEngine.Actors.Host component is configured to use 2 replicas already to show that actors start on any of the available hosts at random (well, based on some hash). Scaling out the Dnw.ChannelEngine.MerchantManager component also works without issues. By default the DAPR pubsub component uses the 'competing consumer' model. This model ensures that when multiple components with the same appId subscribe, only one of those components will receive the message. This exact mechanism causes issues when scaling out the Dnw.ChannelEngine.AdminUI component though. For the AdminUI we do want all the pods to receive all the messages, so they can inform the React UI. The issue is described well in this GitHub issue here: https://github.com/dapr/dapr/issues/3176. The 'solution' (or more work-around) described in the issue is to define 2 different pubsub components. That's also the solution implemented here. Actors publish messages to 2 separate pubsub components: one with the name "queue" and one with the name "broadcast". The AdminUI component listens to messages from the "broadcast" pubsub component, so all AdminUI pods get all the messages. The MerchantManager pods listen for messages from the "queue" pubsub component which ensures that only one of them processed the message. To test with multiple instances of the AdminUI component we also need to add a proper load balancer to our cluster (nginx-ingress for example) though; port-forwarding seems to always connect to the same pod (I see no round-robin behaviour).
+
 # Running locally
 
 This app was created on an Apple Macbook Pro with M1 (Apple Silicon chip). To run it on an x64 machine, all Dockerfiles need to be updated:
@@ -19,6 +21,12 @@ RUN dotnet restore -r linux-musl-arm64
 ```
 
 Simply remove the '-r linux-musl-arm64' argument and it should work on x64.
+
+Also update the ./k8s/helm/templates/redis.yml file and use a x64 image:
+
+```shell
+image: arm64v8/redis:latest
+```
 
 You also need to have a k8s (KinD) cluster with a local registry at localhost:5001/ before running the deploy script. You can use the ./k8s/create_kind_cluster.sh script to create such as cluster:
 
@@ -35,7 +43,7 @@ Afterwards you can initialize the DAPR control-plane like so:
 dapr init -k
 ```
 
-Then wait until the DAPR control-plane is up-and-running:
+Then wait until the DAPR control-plane is up-and-running (status of all dapr namespace pods should be 'Running'):
 
 ```shell
 dapr status -k
@@ -54,10 +62,10 @@ This will deploy all components to the (ChannelEngine) 'ce' namespace. To view a
 kubctl get po -n ce
 ```
 
-Use port-forwarding to access the Dnw.ChannelEngine.AdminUI web application (replace ... with the pod name):
+Use port-forwarding to access the Dnw.ChannelEngine.AdminUI web application (replace ... with the svc name):
 
 ```shell
-kubectl port-forward -n ce admin-ui-... 5050:5050
+kubectl port-forward service/admin-ui -n ce 5050:5050
 ```
 
 You can now browse to http://localhost:5050 to view the admin web UI. Its fine to open multiple browser tabs / windows. With SSE, the UI will be updated near real-time in all browser tabs / windows. 
