@@ -1,7 +1,6 @@
 using Dapr.Client;
 using Dnw.ChannelEngine.Messages;
 using Microsoft.AspNetCore.Mvc;
-using StackExchange.Redis;
 
 namespace Dnw.ChannelEngine.AdminUI.Controllers;
 
@@ -9,13 +8,6 @@ namespace Dnw.ChannelEngine.AdminUI.Controllers;
 [Route("[controller]")]
 public class MerchantController : ControllerBase
 {
-    private readonly IConnectionMultiplexer _mux;
-
-    public MerchantController(IConnectionMultiplexer mux)
-    {
-        _mux = mux;
-    } 
-    
     [HttpGet("simulation/start")]
     public async Task<IActionResult> StartSimulation()
     {
@@ -38,17 +30,6 @@ public class MerchantController : ControllerBase
         using var client = new DaprClientBuilder().Build();
         await client.InvokeMethodAsync(HttpMethod.Get, "merchant-manager", "merchant/simulation/stop");
 
-        return Ok();
-    }
-    
-    [HttpGet("simulation/clear")]
-    public async Task<IActionResult> ClearActorState()
-    {
-        foreach (var server in _mux.GetServers())
-        {
-            await server.FlushDatabaseAsync();
-        }
-        
         return Ok();
     }
 }

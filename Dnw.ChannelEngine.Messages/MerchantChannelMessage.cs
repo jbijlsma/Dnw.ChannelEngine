@@ -10,5 +10,6 @@ namespace Dnw.ChannelEngine.Messages
         public string MerchantChannelName { [UsedImplicitly] get; set; }
         public string RunningOn { [UsedImplicitly] get; set; }
         public string ActorId { get; set; }
+        public string SentByAdminUiMachine { get; set; }
     }
 }

@@ -17,7 +17,7 @@ public class MessageController : ControllerBase
     }
 
     [HttpPost($"/{nameof(ChannelProductRefreshStarted)}")]
-    [Topic(PubSubChannels.Default, nameof(ChannelProductRefreshStarted))] 
+    [Topic(PubSubChannels.Broadcast, nameof(ChannelProductRefreshStarted))] 
     public IResult Post(ChannelProductRefreshStarted msg)
     {
         SendSse(msg);
@@ -25,7 +25,7 @@ public class MessageController : ControllerBase
     }
 
     [HttpPost($"/{nameof(ChannelProductRefreshFinished)}")]
-    [Topic(PubSubChannels.Default, nameof(ChannelProductRefreshFinished))] 
+    [Topic(PubSubChannels.Broadcast, nameof(ChannelProductRefreshFinished))] 
     public IResult Post(ChannelProductRefreshFinished msg)
     {
         SendSse(msg);
@@ -33,7 +33,7 @@ public class MessageController : ControllerBase
     }
     
     [HttpPost($"/{nameof(ChannelProductRefreshScheduled)}")]
-    [Topic(PubSubChannels.Default, nameof(ChannelProductRefreshScheduled))] 
+    [Topic(PubSubChannels.Broadcast, nameof(ChannelProductRefreshScheduled))] 
     public IResult Post(ChannelProductRefreshScheduled msg)
     {
         SendSse(msg);
@@ -41,15 +41,20 @@ public class MessageController : ControllerBase
     }
     
     [HttpPost($"/{nameof(ChannelProductRefreshStopped)}")]
-    [Topic(PubSubChannels.Default, nameof(ChannelProductRefreshStopped))] 
+    [Topic(PubSubChannels.Broadcast, nameof(ChannelProductRefreshStopped))] 
     public IResult Post(ChannelProductRefreshStopped msg)
     {
         SendSse(msg);
         return Results.Ok();
     }
     
-    private void SendSse(object msg)
+    // The generics are necessary here for the serialization
+    // If we use MerchantChannelMessage instead of T for the parameter
+    // only the MerchantChannelMessage properties are serialized (and not the properties
+    // of the derived type)
+    private void SendSse<T>(T msg) where T : MerchantChannelMessage
     {
+        msg.SentByAdminUiMachine = Environment.MachineName;
         var json = JsonSerializer.Serialize(msg, new JsonSerializerOptions
         {
              PropertyNamingPolicy = JsonNamingPolicy.CamelCase

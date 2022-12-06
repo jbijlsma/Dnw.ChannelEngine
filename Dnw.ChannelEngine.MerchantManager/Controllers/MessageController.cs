@@ -19,7 +19,7 @@ public class MessageController : ControllerBase
     }
     
     [HttpPost($"/{nameof(ChannelProductRefreshStarted)}")]
-    [Topic(PubSubChannels.Default, nameof(ChannelProductRefreshStarted))] 
+    [Topic(PubSubChannels.Queue, nameof(ChannelProductRefreshStarted))] 
     public async Task<IResult> Post(ChannelProductRefreshStarted msg)
     {
         await StopActorIfDoesNotExists(msg.MerchantId, msg.ActorId);
@@ -27,7 +27,7 @@ public class MessageController : ControllerBase
     }
 
     [HttpPost($"/{nameof(ChannelProductRefreshFinished)}")]
-    [Topic(PubSubChannels.Default, nameof(ChannelProductRefreshFinished))] 
+    [Topic(PubSubChannels.Queue, nameof(ChannelProductRefreshFinished))] 
     public async Task<IResult> Post(ChannelProductRefreshFinished msg)
     {
         await StopActorIfDoesNotExists(msg.MerchantId, msg.ActorId);

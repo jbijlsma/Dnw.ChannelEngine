@@ -75,7 +75,8 @@ public class MerchantChannel : Actor, IMerchantChannel, IRemindable
         updateMessage?.Invoke(msg);
 
         using var client = new DaprClientBuilder().Build();
-        await client.PublishEventAsync(PubSubChannels.Default, messageType, msg);
+        await client.PublishEventAsync(PubSubChannels.Queue, messageType, msg);
+        await client.PublishEventAsync(PubSubChannels.Broadcast, messageType, msg);
     }
     
     private async Task UnregisterReminder()
