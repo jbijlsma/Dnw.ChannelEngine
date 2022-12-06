@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace Dnw.ChannelEngine.Models
 {
     public class MerchantChannel
@@ -6,6 +8,6 @@ namespace Dnw.ChannelEngine.Models
         public string Name { get; set; }
         public int RefreshIntervalInSeconds { get; set; }
         public int RefreshTimeInSeconds { get; set; }
-        public Channel Channel { get; set; }
+        public Channel Channel { [UsedImplicitly] get; set; }
     }
 }
