@@ -10,7 +10,14 @@ Actors are a natural way to model long running processes such as pushing product
 
 # Running locally
 
-You need to have a k8s cluster with a local registry at localhost:5001/ before running the deploy script. Then simply run the following command:
+You need to have a local k8s (KinD) cluster with a local registry at localhost:5001/ before running the deploy script. You can use the ./k8s/create_kind_cluster.sh script to create such as cluster:
+
+```shell
+cd ./k8s
+./create_kind_cluster.sh
+```
+
+Then simply run the following command:
 
 ```shell
 cd ./k8s
