@@ -114,7 +114,6 @@ export const MerchantChannelSimulation = () => {
         currentElement = items[currentIndex];
 
         compare = collator.compare(searchId, currentElement.id);
-        console.log(`current index: ${currentIndex}, compare: ${compare}`);
         if (compare < 0) {
             maxIndex = currentIndex - 1;
         }
