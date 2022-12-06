@@ -1,13 +1,8 @@
-using Dnw.ChannelEngine.AdminUI;
 using Lib.AspNetCore.ServerSentEvents;
-using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var redisConnectionString = builder.Configuration.GetValue<string>("RedisConnectionString");
-builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConnectionString));
-builder.Services.AddHostedService<ClearRedisStartupService>();
 builder.Services.AddServerSentEvents();
 
 builder.Services.AddControllersWithViews();
