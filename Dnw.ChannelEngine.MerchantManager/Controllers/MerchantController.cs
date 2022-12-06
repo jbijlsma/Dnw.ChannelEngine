@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Dapr.Actors;
 using Dapr.Actors.Client;
 using Dnw.ChannelEngine.Actors;
@@ -32,29 +31,28 @@ public class MerchantController : ControllerBase
         
         _merchantStore.Update(merchants);
         
-        Console.WriteLine(JsonSerializer.Serialize(merchants));
-
         var initMerchantTasks = merchants.Select(merchant =>
         {
             var proxy = ActorProxy.Create<IMerchant>(new ActorId(merchant.Id), nameof(Actors.Merchant));
             return proxy.Init(merchant);
         });
 
+        // Here we can await the tasks, because we just created the actors and know they are not executing long-running 
+        // actions.
         await Task.WhenAll(initMerchantTasks);
-        
-        Console.WriteLine("Started simulation");
         
         return Ok();
     }
     
-    // Awaiting the tasks will cause timeouts with actors that perform long
-    // running tasks
     [HttpGet("simulation/stop")]
     public IActionResult StopSimulation()
     {
         if (_merchantStore.IsEmpty()) return Ok();
         
         var merchants = _merchantStore.GetAll();
+        
+        // Awaiting the tasks will cause timeouts with actors that perform long
+        // running tasks
         merchants.ToList().ForEach(merchant => 
             ActorProxy.Create<IMerchant>(new ActorId(merchant.Id), nameof(Actors.Merchant)).Stop());
 
