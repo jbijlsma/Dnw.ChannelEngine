@@ -28,7 +28,7 @@ public class MerchantController : ControllerBase
     public async Task<IActionResult> StopSimulation()
     {
         using var client = new DaprClientBuilder().Build();
-        await client.InvokeMethodAsync(HttpMethod.Get, "merchant-manager", "merchant/simulation/stop");
+        await client.InvokeMethodAsync(HttpMethod.Post, "merchant-manager", "merchant/simulation/stop");
 
         return Ok();
     }

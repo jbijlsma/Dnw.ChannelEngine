@@ -44,17 +44,17 @@ public class MerchantController : ControllerBase
         return Ok();
     }
     
-    [HttpGet("simulation/stop")]
+    [HttpPost("simulation/stop")]
     public IActionResult StopSimulation()
     {
         if (_merchantStore.IsEmpty()) return Ok();
         
-        var merchants = _merchantStore.GetAll();
+        var merchantIds = _merchantStore.GetMerchantIds();
         
         // Awaiting the tasks will cause timeouts with actors that perform long
         // running tasks
-        merchants.ToList().ForEach(merchant => 
-            ActorProxy.Create<IMerchant>(new ActorId(merchant.Id), nameof(Actors.Merchant)).Stop());
+        merchantIds.ToList().ForEach(merchantId => 
+            ActorProxy.Create<IMerchant>(new ActorId(merchantId), nameof(Actors.Merchant)).Stop());
 
         _merchantStore.Clear();
 
