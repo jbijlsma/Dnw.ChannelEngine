@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0-jammy as build-image
+FROM mcr.microsoft.com/dotnet/sdk:7.0-jammy as build-image
 
 RUN apt update
 RUN apt install nodejs npm -y
@@ -15,7 +15,7 @@ COPY . .
 
 RUN dotnet publish ./Dnw.ChannelEngine.Actors.Host/Dnw.ChannelEngine.Actors.Host.csproj -o /publish/ 
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-jammy
+FROM mcr.microsoft.com/dotnet/aspnet:7.0-jammy
 
 WORKDIR /publish
 
